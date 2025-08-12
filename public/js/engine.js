@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     // Assign refs to the elements with 'ref' attribute
-    // This allows us to access these elements globally via window object
-    // e.g., window.counter for the element with ref="counter"
-    window.refs = {};
+    // This allows us to access these elements globally via globalThis object
+    // e.g., globalThis.counter for the element with ref="counter"
+    globalThis.refs = {};
 
     // create proxy for refs to allow dynamic updates
-    window.$refs = new Proxy(refs, {
+    globalThis.$refs = new Proxy(refs, {
         get(target, prop) {
             if (prop in target) {
                 return target[prop];
@@ -31,46 +32,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const computedElements = document.querySelectorAll('[computed]');
-    computedElements.forEach(computedEl => {
-        const computedName = computedEl.getAttribute('computed');
-        if (computedName && typeof window[computedName] === 'function') {
-            // Create a computed property that updates when the ref changes
-            Object.defineProperty($refs, computedName, {
-                get: () => {
-                    return window[computedName]();
-                },
-                set: (value) => {
-                    console.warn(`Computed property "${computedName}" is read-only.`);
-                }
-            });
-        } else {
-            console.warn(`Computed property "${computedName}" is not defined.`);
-        }
-    });
-
     const reffedElements = document.querySelectorAll('[ref]');
     reffedElements.forEach(refEl => {
         const refName = refEl.getAttribute('ref');
-        if (refName) {
+        if (refName)
             $refs[refName] = refEl;
-        }
     });
 
-    // function updateComputedRefs() {
-    //     Object.keys($computedRef).forEach(key => {
-    //         $computedRef[key] = eval($computedRef[key]);
-    //     });
-    // }
-
+    // globalThis.computed = {};
+    // // Assign computed properties to the elements with 'computed' attribute
+    // // This allows us to define reactive properties that can be used in the template
+    // const computedElements = document.querySelectorAll('[computed]');
+    // computedElements.forEach(computedEl => {
+    //     const computedName = computedEl.getAttribute('computed');
+    //     if (computedName) {
+    //         globalThis.computed[computedName] = computedEl;
+    //     }
+    // });
     // Assign click handlers to elements with 'click' attribute
     // This allows us to call functions defined in the global scope
-    // e.g., clicking an element with click="increment" will call window.increment()
+    // e.g., clicking an element with click="increment" will call globalThis.increment()
     const clickElements = document.querySelectorAll('[click]');
     clickElements.forEach(clickEl => {
         const clickHandler = clickEl.getAttribute('click');
-        if (clickHandler && typeof window[clickHandler] === 'function') {
-            clickEl.addEventListener('click', window[clickHandler]);
+        if (clickHandler && typeof globalThis[clickHandler] === 'function') {
+            clickEl.addEventListener('click', globalThis[clickHandler]);
         }
     });
 });
